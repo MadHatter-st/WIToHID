@@ -11,7 +11,7 @@ void WiegandInit(struct wiegand w){//initialisation wiegand
     w = wig;
 };
 
-void WiegandRead(uint16_t GPIO_Pin){
+void WiegandRead(uint16_t GPIO_Pin, struct wiegand w){
 
     if((GPIO_Pin == wig.D1_Pin || GPIO_Pin == wig.D0_Pin)&&wig.current_index<33) {
         wig.values[wig.current_index++] = GPIO_Pin == wig.D0_Pin ? 1 : 0;
@@ -21,15 +21,14 @@ void WiegandRead(uint16_t GPIO_Pin){
         }
         wig.last_read_time = HAL_GetTick();
     }
-
+    w = wig;
 };
 
-uint8_t WiegandIsAvaliable(){  //
+uint8_t WiegandIsAvaliable(){
     return wig.current_index>0 && HAL_GetTick()-wig.last_read_time>100;
 };
 
-void WiegandGetKey(uint32_t buff[]){
-
+void WiegandGetKey(uint32_t buff[], struct wiegand w){
     if(wig.current_index>8){
         wig.last_read_time = HAL_GetTick();
         for (int i = 0, j=10; i < 10 ; ++i) {
@@ -86,5 +85,6 @@ void WiegandGetKey(uint32_t buff[]){
         wig.last_read_time = HAL_GetTick();
         buff[0]=wig.uit;
     }
-}
+    w = wig;
+};
 

@@ -183,7 +183,6 @@ uint32_t last_read_time = 0;
 //    }
 //}
 struct wiegand w;
-
 /* USER CODE END 0 */
 
 /**
@@ -194,7 +193,7 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
 
-    WiegandInit(w);
+
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -233,9 +232,9 @@ int main(void)
           HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
       }
 
+
       if(WiegandIsAvaliable(w)){
-          WiegandGetKey(*digits);
-          WiegandInit(w);
+          WiegandGetKey(digits, w);
           if(w.current_index!=8){
               for(int i = 0; i < 9; i++ ){
                   HidRaportSender(digits[i]);
@@ -252,6 +251,10 @@ int main(void)
           }else{
 //              deQueue();
           }
+      }
+
+      if(current_index>0){
+          uit =0;
       }
 
 //      if(current_index > 0 && time - last_read_time > 100) {
@@ -429,22 +432,19 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
-
-
-    WiegandRead(GPIO_Pin);
-
-
-
 //    D1_1_Pin
 //    D0_1_Pin
-    if((GPIO_Pin == D1_1_Pin || GPIO_Pin == D0_1_Pin)&&current_index<33) {
-        values[current_index++] = GPIO_Pin == D1_1_Pin ? 1 : 0;
-        uit=uit<<1;
-        if(GPIO_Pin==D1_1_Pin){
-            uit|=1;
-        }
-        last_read_time = HAL_GetTick();
-    }
+
+    WiegandRead(GPIO_Pin, w);
+//    if((GPIO_Pin == D1_1_Pin || GPIO_Pin == D0_1_Pin)&&current_index<33) {
+//        values[current_index++] = GPIO_Pin == D1_1_Pin ? 1 : 0;
+//        uit=uit<<1;
+//        if(GPIO_Pin==D1_1_Pin){
+//            uit|=1;
+//        }
+//        last_read_time = HAL_GetTick();
+//    }
+//    WiegandRead(GPIO_Pin);
 }
 /* USER CODE END 4 */
 
