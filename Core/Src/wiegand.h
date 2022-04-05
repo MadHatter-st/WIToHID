@@ -18,9 +18,10 @@ struct wiegand{
     uint8_t values[32];
 };
 
-void WiegandInit(struct wiegand);   //initialisation wiegand
-void WiegandRead(uint16_t GPIO_Pin, struct wiegand);   //
+void WiegandInit(struct wiegand w);   //initialisation wiegand
+void WiegandRead(uint16_t GPIO_Pin, struct wiegand w);   //
 uint8_t WiegandIsAvaliable(); //
-void WiegandGetKey(uint32_t buff[], struct wiegand); //
+void WiegandGetKey(uint32_t buff[], struct wiegand w); //
+uint8_t WiegandCard();
 
 #endif //PROJECT_KURS_WIGAND_H
