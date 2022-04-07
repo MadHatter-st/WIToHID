@@ -7,25 +7,25 @@
 
 #include "stm32f1xx.h"
 #include "stm32f1xx_hal.h"
-#include "usb_device.h"
+#include "usbd_hid.h"
+#include "usb_hid_keys.h"
 
-typedef struct
-{
-    uint8_t MODIFIER;
-    uint8_t RESERVED;
-    uint8_t KEYCODE1;
-    uint8_t KEYCODE2;
-    uint8_t KEYCODE3;
-    uint8_t KEYCODE4;
-    uint8_t KEYCODE5;
-    uint8_t KEYCODE6;
-}keycodes;
+#define KEY_QUEUE_SIZE 100
 
-int isFull();
-int isEmpty();
-void enQueue(uint32_t element);
-void deQueue();
-//void display();
-void HidRaportSender(uint32_t ui);
+
+#define KEY_INPUT_STATE_WAIT  0
+#define KEY_INPUT_STATE_PRESS  1
+#define KEY_INPUT_STATE_RELEASE  2
+
+uint8_t KeyInputQueueIsFull();
+uint8_t KeyInputQueueIsEmpty();
+
+uint8_t KeyInputMap(uint8_t key);
+
+void KeyInputLoop();
+
+uint8_t KeyInputQueueEnQueue(uint8_t element);
+uint8_t KeyInputQueueDeQueue();
+uint8_t KeyInputQueuePeekQueue();
 
 #endif //PROJECT_KURS_HID_H

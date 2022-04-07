@@ -3,163 +3,169 @@
 //
 //#include "hid.h"
 
-#include "usbd_hid.h"
 #include "hid.h"
 
-#define SIZE 10
+int items[KEY_QUEUE_SIZE];
+int key_queue_front = -1, key_queue_rear =-1;
 
-uint32_t items[SIZE];
-int front = -1, rear =-1;
 
 extern USBD_HandleTypeDef hUsbDeviceFS;
-uint32_t delay = 10;
 
-keycodes keyboardHID = {0,0,0,0,0,0,0,0};
-
-int isFull()
+typedef struct
 {
-    if( (front == rear + 1) || (front == 0 && rear == SIZE-1)) return 1;
-    return 0;
-}
+    uint8_t MODIFIER;
+    uint8_t RESERVED;
+    uint8_t KEYCODE1;
+    uint8_t KEYCODE2;
+    uint8_t KEYCODE3;
+    uint8_t KEYCODE4;
+    uint8_t KEYCODE5;
+    uint8_t KEYCODE6;
+} keyboardHID;
 
-int isEmpty()
-{
-    if(front == -1) return 1;
-    return 0;
-}
+keyboardHID keyboardhid = {0,0,0,0,0,0,0,0};
 
-void enQueue(uint32_t element)
-{
-    if(isFull()) return;
-    else
-    {
-        if(front == -1) front = 0;
-        rear = (rear + 1) % SIZE;
-        items[rear] = element;
-//        printf("\n Inserted -> %d", element);
+uint32_t key_input_time = 0;
+uint8_t key_input_state = KEY_INPUT_STATE_WAIT;
+
+void KeyInputLoop() {
+    uint32_t time = HAL_GetTick();
+    switch(key_input_state) {
+        case KEY_INPUT_STATE_WAIT: {
+            if(!KeyInputQueueIsEmpty()) {
+                uint8_t before = 0;
+                for(int i=1; i <= 6 && !KeyInputQueueIsEmpty() && (i==0 || before != KeyInputQueuePeekQueue()); i++) {
+                    switch (i) {
+                        case 1: before = KeyInputQueueDeQueue(); keyboardhid.KEYCODE1 = KeyInputMap(before); break;
+                        case 2: before = KeyInputQueueDeQueue(); keyboardhid.KEYCODE2 = KeyInputMap(before); break;
+                        case 3: before = KeyInputQueueDeQueue(); keyboardhid.KEYCODE3 = KeyInputMap(before); break;
+                        case 4: before = KeyInputQueueDeQueue(); keyboardhid.KEYCODE4 = KeyInputMap(before); break;
+                        case 5: before = KeyInputQueueDeQueue(); keyboardhid.KEYCODE5 = KeyInputMap(before); break;
+                        case 6: keyboardhid.KEYCODE6 = KeyInputMap(KeyInputQueueDeQueue()); break;
+                    }
+                }
+                USBD_HID_SendReport(&hUsbDeviceFS, &keyboardhid, sizeof (keyboardhid));
+                key_input_time = time + 20;
+                key_input_state = KEY_INPUT_STATE_PRESS;
+            }
+            break;
+        }
+        case KEY_INPUT_STATE_PRESS: {
+            if(time > key_input_time) {
+                for(int i=1; i <= 6; i++) {
+                    switch (i) {
+                        case 1: keyboardhid.KEYCODE1 = 0; break;
+                        case 2: keyboardhid.KEYCODE2 = 0; break;
+                        case 3: keyboardhid.KEYCODE3 = 0; break;
+                        case 4: keyboardhid.KEYCODE4 = 0; break;
+                        case 5: keyboardhid.KEYCODE5 = 0; break;
+                        case 6: keyboardhid.KEYCODE6 = 0; break;
+                    }
+                }
+                USBD_HID_SendReport(&hUsbDeviceFS, &keyboardhid, sizeof (keyboardhid));
+                key_input_time = time + 20;
+                key_input_state = KEY_INPUT_STATE_RELEASE;
+            }
+            break;
+        }
+        case KEY_INPUT_STATE_RELEASE: {
+            if(time > key_input_time) {
+                key_input_state = KEY_INPUT_STATE_WAIT;
+            }
+        }
     }
 }
 
 
-void deQueue()
-{
-    uint32_t element;
-    if(isEmpty()) {
-//        printf("\n Queue is empty !! \n");
-        return;
+uint8_t KeyInputQueueIsFull() {
+    if((key_queue_front == key_queue_rear + 1) || (key_queue_front == 0 && key_queue_rear == KEY_QUEUE_SIZE - 1)) {
+        return 1;
+    }
+    return 0;
+}
+
+uint8_t KeyInputQueueIsEmpty() {
+    if(key_queue_front == -1) {
+        return 1;
+    }
+    return 0;
+}
+
+uint8_t KeyInputQueueEnQueue(uint8_t element) {
+    if(!KeyInputQueueIsFull()) {
+        if(key_queue_front == -1) key_queue_front = 0;
+        key_queue_rear = (key_queue_rear + 1) % KEY_QUEUE_SIZE;
+        items[key_queue_rear] = element;
+        return 1;
+    }
+    return 0;
+}
+
+uint8_t KeyInputQueueDeQueue() {
+    int element;
+    if(KeyInputQueueIsEmpty()) {
+        return(0);
     } else {
-        element = items[front];
-        if (front == rear){
-            front = -1;
-            rear = -1;
-        } /* В Q есть только один элемент, поэтому мы сбрасываем очередь после ее удаления. */
-        else {
-            front = (front + 1) % SIZE;
-
+        element = items[key_queue_front];
+        if (key_queue_front == key_queue_rear){
+            key_queue_front = -1;
+            key_queue_rear = -1;
         }
-        HidRaportSender(element);
-//        printf("\n Deleted element -> %d \n", element);
-        return;
+        else {
+            key_queue_front = (key_queue_front + 1) % KEY_QUEUE_SIZE;
+        }
+        return(element);
     }
 }
 
-void HidRaportSender(uint32_t ui){
-        switch (ui) {
-            case 240:{
-                keyboardHID.KEYCODE1 = 0x27;  // press '0'
-                USBD_HID_SendReport(&hUsbDeviceFS, &keyboardHID, sizeof (keyboardHID));
-                HAL_Delay (delay);
-                keyboardHID.KEYCODE1 = 0x00;  // r
-                USBD_HID_SendReport(&hUsbDeviceFS, &keyboardHID, sizeof (keyboardHID));
-                break;
-            }
-            case 225:{
-                keyboardHID.KEYCODE1 = 0x1E;  // press '1'
-                USBD_HID_SendReport(&hUsbDeviceFS, &keyboardHID, sizeof (keyboardHID));
-                HAL_Delay (delay);
-                keyboardHID.KEYCODE1 = 0x00;  // r
-                USBD_HID_SendReport(&hUsbDeviceFS, &keyboardHID, sizeof (keyboardHID));
-                break;
-            }
-            case 210:{
-                keyboardHID.KEYCODE1 = 0x1F;  // press '2'
-                USBD_HID_SendReport(&hUsbDeviceFS, &keyboardHID, sizeof (keyboardHID));
-                HAL_Delay (delay);
-                keyboardHID.KEYCODE1 = 0x00;  // r
-                USBD_HID_SendReport(&hUsbDeviceFS, &keyboardHID, sizeof (keyboardHID));
-                break;
-            }
-            case 195:{
-                keyboardHID.KEYCODE1 = 0x20;  // press '3'
-                USBD_HID_SendReport(&hUsbDeviceFS, &keyboardHID, sizeof (keyboardHID));
-                HAL_Delay (delay);
-                keyboardHID.KEYCODE1 = 0x00;  // r
-                USBD_HID_SendReport(&hUsbDeviceFS, &keyboardHID, sizeof (keyboardHID));
-                break;
-            }
-            case 180:{
-                keyboardHID.KEYCODE1 = 0x21;  // press '4'
-                USBD_HID_SendReport(&hUsbDeviceFS, &keyboardHID, sizeof (keyboardHID));
-                HAL_Delay (delay);
-                keyboardHID.KEYCODE1 = 0x00;  // r
-                USBD_HID_SendReport(&hUsbDeviceFS, &keyboardHID, sizeof (keyboardHID));
-                break;
-            }
-            case 165:{
-                keyboardHID.KEYCODE1 = 0x22;  // press '5'
-                USBD_HID_SendReport(&hUsbDeviceFS, &keyboardHID, sizeof (keyboardHID));
-                HAL_Delay (delay);
-                keyboardHID.KEYCODE1 = 0x00;  // r
-                USBD_HID_SendReport(&hUsbDeviceFS, &keyboardHID, sizeof (keyboardHID));
-                break;
-            }
-            case 150:{
-                keyboardHID.KEYCODE1 = 0x23;  // press '6'
-                USBD_HID_SendReport(&hUsbDeviceFS, &keyboardHID, sizeof (keyboardHID));
-                HAL_Delay (delay);
-                keyboardHID.KEYCODE1 = 0x00;  // r
-                USBD_HID_SendReport(&hUsbDeviceFS, &keyboardHID, sizeof (keyboardHID));
-                break;
-            }
-            case 135:{
-                keyboardHID.KEYCODE1 = 0x24;  // press '7'
-                USBD_HID_SendReport(&hUsbDeviceFS, &keyboardHID, sizeof (keyboardHID));
-                HAL_Delay (delay);
-                keyboardHID.KEYCODE1 = 0x00;  // r
-                USBD_HID_SendReport(&hUsbDeviceFS, &keyboardHID, sizeof (keyboardHID));
-                break;
-            }
-            case 120:{
-                keyboardHID.KEYCODE1 = 0x25;  // press '8'
-                USBD_HID_SendReport(&hUsbDeviceFS, &keyboardHID, sizeof (keyboardHID));
-                HAL_Delay (delay);
-                keyboardHID.KEYCODE1 = 0x00;  // r
-                USBD_HID_SendReport(&hUsbDeviceFS, &keyboardHID, sizeof (keyboardHID));
-                break;
-            }
-            case 105:{
-                keyboardHID.KEYCODE1 = 0x26;  // press '9'
-                USBD_HID_SendReport(&hUsbDeviceFS, &keyboardHID, sizeof (keyboardHID));
-                HAL_Delay (delay);
-                keyboardHID.KEYCODE1 = 0x00;  // r
-                USBD_HID_SendReport(&hUsbDeviceFS, &keyboardHID, sizeof (keyboardHID));
-                break;
-            }
-            case 90:{
-                keyboardHID.KEYCODE1 = 0x2A;  // press 'del'
-                USBD_HID_SendReport(&hUsbDeviceFS, &keyboardHID, sizeof (keyboardHID));
-                HAL_Delay (delay);
-                keyboardHID.KEYCODE1 = 0x00;  // r
-                USBD_HID_SendReport(&hUsbDeviceFS, &keyboardHID, sizeof (keyboardHID));
-                break;
-            }
-            case 75:{
-                keyboardHID.KEYCODE1 = 0x28;  // press 'enter'
-                USBD_HID_SendReport(&hUsbDeviceFS, &keyboardHID, sizeof (keyboardHID));
-                HAL_Delay (delay);
-                keyboardHID.KEYCODE1 = 0x00;  // r
-                USBD_HID_SendReport(&hUsbDeviceFS, &keyboardHID, sizeof (keyboardHID));
-                break;
-            }
-        }
+uint8_t KeyInputQueuePeekQueue() {
+    int element;
+    if(KeyInputQueueIsEmpty()) {
+        return(0);
+    } else {
+        return(items[key_queue_front]);
     }
+}
+
+uint8_t KeyInputMap(uint8_t key) {
+    switch (key) {
+        case '0' : return KEY_0;
+        case '1' : return KEY_1;
+        case '2' : return KEY_2;
+        case '3' : return KEY_3;
+        case '4' : return KEY_4;
+        case '5' : return KEY_5;
+        case '6' : return KEY_6;
+        case '7' : return KEY_7;
+        case '8' : return KEY_8;
+        case '9' : return KEY_9;
+        case 'a' : return KEY_A;
+        case 'b' : return KEY_B;
+        case 'c' : return KEY_C;
+        case 'd' : return KEY_D;
+        case 'e' : return KEY_E;
+        case 'f' : return KEY_F;
+        case 'g' : return KEY_G;
+        case 'h' : return KEY_H;
+        case 'i' : return KEY_I;
+        case 'j' : return KEY_J;
+        case 'k' : return KEY_K;
+        case 'l' : return KEY_L;
+        case 'm' : return KEY_M;
+        case 'n' : return KEY_N;
+        case 'o' : return KEY_O;
+        case 'p' : return KEY_P;
+        case 'q' : return KEY_Q;
+        case 'r' : return KEY_R;
+        case 's' : return KEY_S;
+        case 't' : return KEY_T;
+        case 'u' : return KEY_U;
+        case 'v' : return KEY_V;
+        case 'w' : return KEY_W;
+        case 'x' : return KEY_X;
+        case 'y' : return KEY_Y;
+        case 'z' : return KEY_Z;
+        case '\n' : return KEY_ENTER;
+        default: return 0x00;
+    }
+}

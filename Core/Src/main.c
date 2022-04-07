@@ -76,7 +76,6 @@ static void MX_GPIO_Init(void);
 //
 uint32_t uit=0;
 uint8_t values[32];
-uint32_t digits[10];
 //uint32_t revdigits[10];
 uint8_t current_index = 0;
 uint32_t last_read_time = 0;
@@ -182,17 +181,37 @@ uint32_t last_read_time = 0;
 //        }
 //    }
 //}
-struct wiegand w;
+
+int count =5;
+
+/* WIEGAND DECLARATION */
+struct wiegand w1;
+struct wiegand w2;
+struct wiegand w3;
+struct wiegand w4;
+struct wiegand w5;
+
 /* USER CODE END 0 */
 
 /**
   * @brief  The application entry point.
   * @retval int
   */
-int main(void)
-{
+int main(void) {
     /* USER CODE BEGIN 1 */
-    WiegandInit(w);
+
+    /* WIEGAND CONFIGURATION */
+    w1.D1_Pin = D1_1_Pin;
+    w1.D0_Pin = D0_1_Pin;
+    w2 = w1;
+    w3 = w1;
+    w4 = w1;
+    w5 = w1;
+    struct wiegand Wiegands[5] = {
+            w1, w2, w3, w4, w5
+    };
+    WiegandInit(Wiegands, count);
+
     /* USER CODE END 1 */
 
     /* MCU Configuration--------------------------------------------------------*/
@@ -221,40 +240,41 @@ int main(void)
 
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
-    while (1)
-    {
+    while (1) {
 
         uint32_t time = HAL_GetTick();
-        if(time > blink_time) {
+        if (time > blink_time) {
             HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
         } else {
             HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
         }
+        int recuest = WiegandIsAvaliable();
+        if (recuest!=-1) {
+            uint8_t digits[10];
+            int lenght = WiegandGetKey(digits,recuest);                  //Continue
+            if (lenght>1) {
+                for (int i = 0; i < 9; i++) {
 
-
-
-            WiegandGetKey(digits, w);
-            if(WiegandCard()){
-                for(int i = 0; i < 9; i++ ){
-                    HidRaportSender(digits[i]);
 //                  enQueue(digits[i]);
                 }
-            }else{
-                HidRaportSender(digits[0]);
+            } else {
+                //HidRaportSender(digits[0]);
 //              enQueue(digits[0]);
             }
-            if(w.current_index!=8){
-                for(int i = 0; i < 9; i++ ){
+            if (w1.current_index != 8) {
+                for (int i = 0; i < 9; i++) {
 //                  deQueue();
                 }
-            }else{
+            } else {
 //              deQueue();
             }
         }
 
-        if(current_index>0){
-            uit =0;
+        if (current_index > 0) {
+            uit = 0;
         }
+    }
+}
 
 //      if(current_index > 0 && time - last_read_time > 100) {
 //          blink_time = time + 200;
@@ -336,8 +356,6 @@ int main(void)
 //         current_index = 0;
 //          uit = 0;
 
-
-    }
 
     /* USER CODE END WHILE */
 
@@ -434,7 +452,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 //    D1_1_Pin
 //    D0_1_Pin
 
-    WiegandRead(GPIO_Pin, w);
+    WiegandRead(GPIO_Pin);
 //    if((GPIO_Pin == D1_1_Pin || GPIO_Pin == D0_1_Pin)&&current_index<33) {
 //        values[current_index++] = GPIO_Pin == D1_1_Pin ? 1 : 0;
 //        uit=uit<<1;

@@ -4,90 +4,59 @@
 
 #include "wiegand.h"
 
-struct wiegand wig;
-void WiegandInit(struct wiegand w){//initialisation wiegand
-    w.D0_Pin = D0_1_Pin;
-    w.D1_Pin = D1_1_Pin;
+struct wiegand* wig;
+int wiegand_count;
+
+void WiegandInit(struct wiegand * w, int lenght){
+    wiegand_count = lenght;
     wig = w;
+    for(int i = 0; i<lenght; i++){
+        wig[i].current_index = 0;
+        wig[i].uit = 0;
+        wig[i].last_read_time = 0;
+    }
 };
 
-void WiegandRead(uint16_t GPIO_Pin, struct wiegand w){
-
-    if((GPIO_Pin == wig.D1_Pin || GPIO_Pin == wig.D0_Pin)&&wig.current_index<33) {
-        wig.values[wig.current_index++] = GPIO_Pin == wig.D0_Pin ? 1 : 0;
-        wig.uit=wig.uit<<1;
-        if(GPIO_Pin==wig.D0_Pin){
-            wig.uit|=1;
+void WiegandRead(uint16_t GPIO_Pin){
+    for(int i=0;i<wiegand_count;i++) {
+        if ((GPIO_Pin == wig[i].D1_Pin || GPIO_Pin == wig[i].D0_Pin) && wig[i].current_index < 33) {
+            wig[i].values[wig[i].current_index++] = GPIO_Pin == wig[i].D0_Pin ? 1 : 0;                                  //можно будет переделать
+            wig[i].uit = wig[i].uit << 1;
+            if (GPIO_Pin == wig[i].D0_Pin) {
+                wig[i].uit |= 1;
+            }
+            wig[i].last_read_time = HAL_GetTick();
         }
-        wig.last_read_time = HAL_GetTick();
     }
 };
 
 uint8_t WiegandIsAvaliable(){
-    return wig.current_index>0 && HAL_GetTick()-wig.last_read_time>100;
+    for(int i=0; i<wiegand_count; i++) {
+        if (wig[i].current_index > 0 && HAL_GetTick() - wig[i].last_read_time > 100) {
+            return i;
+        } else{
+            return -1;
+        }
+    }
 };
 
  uint8_t WiegandCard(){
-    return wig.current_index>8?1:0;
+    return wig[0].current_index>8?1:0;
 }
 
-void WiegandGetKey(uint32_t buff[], struct wiegand w){
-    if(WiegandIsAvaliable()) {
-        if (wig.current_index > 8) {
-            wig.last_read_time = HAL_GetTick();
-            for (int i = 0, j = 10; i < 10; ++i) {
-                buff[i] = wig.uit % 10;
-                wig.uit /= j;
-            }
-            for (int i = 0; i < 10; ++i) {
-                switch (buff[i]) {
-                    case 0: {
-                        buff[i] = 240;
-                        continue;
-                    }
-                    case 1: {
-                        buff[i] = 225;  // press '1'
-                        continue;
-                    }
-                    case 2: {
-                        buff[i] = 210;  // press '2'
-                        continue;
-                    }
-                    case 3: {
-                        buff[i] = 195;  // press '3'
-                        continue;
-                    }
-                    case 4: {
-                        buff[i] = 180;  // press '4'
-                        continue;
-                    }
-                    case 5: {
-                        buff[i] = 165;  // press '5'
-                        continue;
-                    }
-                    case 6: {
-                        buff[i] = 150;  // press '6'
-                        continue;
-                    }
-                    case 7: {
-                        buff[i] = 135;  // press '7'
-                        continue;
-                    }
-                    case 8: {
-                        buff[i] = 120;  // press '8'
-                        continue;
-                    }
-                    case 9: {
-                        buff[i] = 105;  // press '9'
-                        continue;
-                    }
-                    default:
-                        continue;
-                }
+
+uint8_t WiegandGetKey(uint8_t buff[],int i){
+     uint8_t lenght = 0;
+        if (wig[i].current_index > 8) {
+            wig[i].last_read_time = HAL_GetTick();
+            for (int i = 0, j = 10; i < 10;lenght++, ++i) {
+                buff[i] = wig[i].uit % 10;
+                wig[i].uit /= j;
             }
         } else {
-            wig.last_read_time = HAL_GetTick();
-            buff[0] = wig.uit;
+            wig[i].last_read_time = HAL_GetTick();
+            buff[0] = wig[i].uit;
+            lenght++;
         }
-    }
+        return lenght;
 };
