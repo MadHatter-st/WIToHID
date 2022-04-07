@@ -49,14 +49,14 @@ uint8_t WiegandGetKey(uint8_t buff[],int i){
      uint8_t lenght = 0;
         if (wig[i].current_index > 8) {
             wig[i].last_read_time = HAL_GetTick();
-            for (int i = 0, j = 10; i < 10;lenght++, ++i) {
+            lenght = 1;
+            for (int i = 0, j = 10; i < 10; ++i) {
                 buff[i] = wig[i].uit % 10;
                 wig[i].uit /= j;
             }
         } else {
             wig[i].last_read_time = HAL_GetTick();
             buff[0] = wig[i].uit;
-            lenght++;
         }
         return lenght;
 };

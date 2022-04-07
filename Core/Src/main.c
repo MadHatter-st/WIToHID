@@ -130,30 +130,17 @@ int main(void) {
         } else {
             HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
         }
-        int recuest = WiegandIsAvaliable();
-        if (recuest!=-1) {
+        //IsAvaliable возвращает индекс устройства, с которого подали сигнал
+        if (WiegandIsAvaliable()!=-1) {
             uint8_t digits[10];
-            int lenght = WiegandGetKey(digits,recuest);                  //Continue
-            if (lenght>1) {
-                for (int i = 0; i < 9; i++) {
+            //GetKey возвращает значение 1 если в массиве digits > одного элемента, иначе - 0
+            if (WiegandGetKey(digits,WiegandIsAvaliable())) {
+                for (int i = 0; i < 9; i++) {        //Если передалось больше одной клавиши(карта)
 
-//                  enQueue(digits[i]);
                 }
-            } else {
-                //HidRaportSender(digits[0]);
-//              enQueue(digits[0]);
-            }
-            if (w1.current_index != 8) {
-                for (int i = 0; i < 9; i++) {
-//                  deQueue();
-                }
-            } else {
-//              deQueue();
-            }
-        }
+            } else {                                //Если нажали одну клавишу
 
-        if (current_index > 0) {
-            uit = 0;
+            }
         }
     }
 }
@@ -251,7 +238,6 @@ static void MX_GPIO_Init(void)
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 //    D1_1_Pin
 //    D0_1_Pin
-
     WiegandRead(GPIO_Pin);
 }
 /* USER CODE END 4 */
