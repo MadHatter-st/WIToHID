@@ -57,130 +57,12 @@ static void MX_GPIO_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-//extern USBD_HandleTypeDef hUsbDeviceFS;
-//
-//typedef struct
-//{
-//    uint8_t MODIFIER;
-//    uint8_t RESERVED;
-//    uint8_t KEYCODE1;
-//    uint8_t KEYCODE2;
-//    uint8_t KEYCODE3;
-//    uint8_t KEYCODE4;
-//    uint8_t KEYCODE5;
-//    uint8_t KEYCODE6;
-//} keyboardHID;
-//
-//keyboardHID keyboardhid = {0,0,0,0,0,0,0,0};
-//
-//
 uint32_t uit=0;
 uint8_t values[32];
 //uint32_t revdigits[10];
 uint8_t current_index = 0;
 uint32_t last_read_time = 0;
 //uint32_t n1=0;
-//
-//void raportsender(uint32_t ui){
-//    switch (ui) {
-//        case 240:{
-//            keyboardhid.KEYCODE1 = 0x27;  // press '0'
-//            USBD_HID_SendReport(&hUsbDeviceFS, &keyboardhid, sizeof (keyboardhid));
-//            HAL_Delay (50);
-//            keyboardhid.KEYCODE1 = 0x00;  // r
-//            USBD_HID_SendReport(&hUsbDeviceFS, &keyboardhid, sizeof (keyboardhid));
-//            break;
-//        }
-//        case 225:{
-//            keyboardhid.KEYCODE1 = 0x1E;  // press '1'
-//            USBD_HID_SendReport(&hUsbDeviceFS, &keyboardhid, sizeof (keyboardhid));
-//            HAL_Delay (50);
-//            keyboardhid.KEYCODE1 = 0x00;  // r
-//            USBD_HID_SendReport(&hUsbDeviceFS, &keyboardhid, sizeof (keyboardhid));
-//            break;
-//        }
-//        case 210:{
-//            keyboardhid.KEYCODE1 = 0x1F;  // press '2'
-//            USBD_HID_SendReport(&hUsbDeviceFS, &keyboardhid, sizeof (keyboardhid));
-//            HAL_Delay (50);
-//            keyboardhid.KEYCODE1 = 0x00;  // r
-//            USBD_HID_SendReport(&hUsbDeviceFS, &keyboardhid, sizeof (keyboardhid));
-//            break;
-//        }
-//        case 195:{
-//            keyboardhid.KEYCODE1 = 0x20;  // press '3'
-//            USBD_HID_SendReport(&hUsbDeviceFS, &keyboardhid, sizeof (keyboardhid));
-//            HAL_Delay (50);
-//            keyboardhid.KEYCODE1 = 0x00;  // r
-//            USBD_HID_SendReport(&hUsbDeviceFS, &keyboardhid, sizeof (keyboardhid));
-//            break;
-//        }
-//        case 180:{
-//            keyboardhid.KEYCODE1 = 0x21;  // press '4'
-//            USBD_HID_SendReport(&hUsbDeviceFS, &keyboardhid, sizeof (keyboardhid));
-//            HAL_Delay (50);
-//            keyboardhid.KEYCODE1 = 0x00;  // r
-//            USBD_HID_SendReport(&hUsbDeviceFS, &keyboardhid, sizeof (keyboardhid));
-//            break;
-//        }
-//        case 165:{
-//            keyboardhid.KEYCODE1 = 0x22;  // press '5'
-//            USBD_HID_SendReport(&hUsbDeviceFS, &keyboardhid, sizeof (keyboardhid));
-//            HAL_Delay (50);
-//            keyboardhid.KEYCODE1 = 0x00;  // r
-//            USBD_HID_SendReport(&hUsbDeviceFS, &keyboardhid, sizeof (keyboardhid));
-//            break;
-//        }
-//        case 150:{
-//            keyboardhid.KEYCODE1 = 0x23;  // press '6'
-//            USBD_HID_SendReport(&hUsbDeviceFS, &keyboardhid, sizeof (keyboardhid));
-//            HAL_Delay (50);
-//            keyboardhid.KEYCODE1 = 0x00;  // r
-//            USBD_HID_SendReport(&hUsbDeviceFS, &keyboardhid, sizeof (keyboardhid));
-//            break;
-//        }
-//        case 135:{
-//            keyboardhid.KEYCODE1 = 0x24;  // press '7'
-//            USBD_HID_SendReport(&hUsbDeviceFS, &keyboardhid, sizeof (keyboardhid));
-//            HAL_Delay (50);
-//            keyboardhid.KEYCODE1 = 0x00;  // r
-//            USBD_HID_SendReport(&hUsbDeviceFS, &keyboardhid, sizeof (keyboardhid));
-//            break;
-//        }
-//        case 120:{
-//            keyboardhid.KEYCODE1 = 0x25;  // press '8'
-//            USBD_HID_SendReport(&hUsbDeviceFS, &keyboardhid, sizeof (keyboardhid));
-//            HAL_Delay (50);
-//            keyboardhid.KEYCODE1 = 0x00;  // r
-//            USBD_HID_SendReport(&hUsbDeviceFS, &keyboardhid, sizeof (keyboardhid));
-//            break;
-//        }
-//        case 105:{
-//            keyboardhid.KEYCODE1 = 0x26;  // press '9'
-//            USBD_HID_SendReport(&hUsbDeviceFS, &keyboardhid, sizeof (keyboardhid));
-//            HAL_Delay (50);
-//            keyboardhid.KEYCODE1 = 0x00;  // r
-//            USBD_HID_SendReport(&hUsbDeviceFS, &keyboardhid, sizeof (keyboardhid));
-//            break;
-//        }
-//        case 90:{
-//            keyboardhid.KEYCODE1 = 0x2A;  // press 'del'
-//            USBD_HID_SendReport(&hUsbDeviceFS, &keyboardhid, sizeof (keyboardhid));
-//            HAL_Delay (50);
-//            keyboardhid.KEYCODE1 = 0x00;  // r
-//            USBD_HID_SendReport(&hUsbDeviceFS, &keyboardhid, sizeof (keyboardhid));
-//            break;
-//        }
-//        case 75:{
-//            keyboardhid.KEYCODE1 = 0x28;  // press 'enter'
-//            USBD_HID_SendReport(&hUsbDeviceFS, &keyboardhid, sizeof (keyboardhid));
-//            HAL_Delay (50);
-//            keyboardhid.KEYCODE1 = 0x00;  // r
-//            USBD_HID_SendReport(&hUsbDeviceFS, &keyboardhid, sizeof (keyboardhid));
-//            break;
-//        }
-//    }
-//}
 
 int count =5;
 
@@ -275,88 +157,6 @@ int main(void) {
         }
     }
 }
-
-//      if(current_index > 0 && time - last_read_time > 100) {
-//          blink_time = time + 200;
-//
-//          if(current_index>8){
-//
-//              for (int i = 0, j=10; i < 10 ; ++i) {
-//                  digits[i]=uit%10;
-//                  uit/=j;
-//              }
-//
-////              for (int i = 0,j=9; i < 10; ++i,--j) {
-////                  revdigits[i]=digits[j];
-////              }
-//
-//              for (int i = 0,j=9; i < 4; ++i,--j) {
-//                  uint32_t temp = digits[i];
-//                  digits[i]=digits[j];
-//                  digits[j] = temp;
-//              }
-//
-//              for (int i = 0; i < 10; ++i) {
-//                  switch (digits[i]) {
-//                      case 0:{
-//                          digits[i]=240;
-//                          continue;
-//                      }
-//                      case 1:{
-//                          digits[i]=225;  // press '1'
-//                          continue;
-//                      }
-//                      case 2:{
-//                          digits[i]=210;  // press '2'
-//                          continue;
-//                      }
-//                      case 3:{
-//                          digits[i]=195;  // press '3'
-//                          continue;
-//                      }
-//                      case 4:{
-//                          revdigits[i]=180;  // press '4'
-//                          continue;
-//                      }
-//                      case 5:{
-//                          digits[i]=165;  // press '5'
-//                          continue;
-//                      }
-//                      case 6:{
-//                          digits[i]=150;  // press '6'
-//                          continue;
-//                      }
-//                      case 7:{
-//                          digits[i]=135;  // press '7'
-//                          continue;
-//                      }
-//                      case 8:{
-//                          digits[i]=120;  // press '8'
-//                          continue;
-//                      }
-//                      case 9:{
-//                          digits[i]=105;  // press '9'
-//                          continue;
-//                      }
-//                  }
-//              }
-//
-//              for (int i = 0; i < 10; ++i) {
-//
-//                  raportsender(digits[i]);
-//                  HAL_Delay (15);        //repair
-//
-//              }
-//              raportsender(75);
-
-//          }
-//          else{
-//              raportsender(uit);
-//          }
-//         current_index = 0;
-//          uit = 0;
-
-
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -453,15 +253,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 //    D0_1_Pin
 
     WiegandRead(GPIO_Pin);
-//    if((GPIO_Pin == D1_1_Pin || GPIO_Pin == D0_1_Pin)&&current_index<33) {
-//        values[current_index++] = GPIO_Pin == D1_1_Pin ? 1 : 0;
-//        uit=uit<<1;
-//        if(GPIO_Pin==D1_1_Pin){
-//            uit|=1;
-//        }
-//        last_read_time = HAL_GetTick();
-//    }
-//    WiegandRead(GPIO_Pin);
 }
 /* USER CODE END 4 */
 
