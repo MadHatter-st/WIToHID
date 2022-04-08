@@ -131,15 +131,12 @@ int main(void) {
             HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
         }
         //IsAvaliable возвращает индекс устройства, с которого подали сигнал
-        if (WiegandIsAvaliable()!=-1) {
-            uint8_t digits[10];
+        if (WiegandIsAvaliable() != -1) {
+            char digits[11];
+            int len = WiegandGetKey(digits, WiegandIsAvaliable());
             //GetKey возвращает значение 1 если в массиве digits > одного элемента, иначе - 0
-            if (WiegandGetKey(digits,WiegandIsAvaliable())) {
-                for (int i = 0; i < 9; i++) {        //Если передалось больше одной клавиши(карта)
-
-                }
-            } else {                                //Если нажали одну клавишу
-
+            for(int i= 0; i<len;i++){
+                KeyInputQueueEnQueue(digits[i]);
             }
         }
     }

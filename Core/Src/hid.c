@@ -119,7 +119,6 @@ uint8_t KeyInputQueueDeQueue() {
 }
 
 uint8_t KeyInputQueuePeekQueue() {
-    int element;
     if(KeyInputQueueIsEmpty()) {
         return(0);
     } else {

@@ -2,6 +2,7 @@
 // Created by nikita on 30.03.2022.
 //
 
+#include <stdio.h>
 #include "wiegand.h"
 
 struct wiegand* wig;
@@ -34,10 +35,9 @@ uint8_t WiegandIsAvaliable(){
     for(int i=0; i<wiegand_count; i++) {
         if (wig[i].current_index > 0 && HAL_GetTick() - wig[i].last_read_time > 100) {
             return i;
-        } else{
-            return -1;
         }
     }
+    return -1;
 };
 
  uint8_t WiegandCard(){
@@ -45,18 +45,35 @@ uint8_t WiegandIsAvaliable(){
 }
 
 
-uint8_t WiegandGetKey(uint8_t buff[],int i){
-     uint8_t lenght = 0;
+uint8_t WiegandGetKey(char * buff,int i){
+     uint8_t lenght = 1;
         if (wig[i].current_index > 8) {
-            wig[i].last_read_time = HAL_GetTick();
-            lenght = 1;
-            for (int i = 0, j = 10; i < 10; ++i) {
-                buff[i] = wig[i].uit % 10;
-                wig[i].uit /= j;
-            }
+            lenght = 11;
+            sprintf(buff, "%010d\n", wig[i].uit);
         } else {
-            wig[i].last_read_time = HAL_GetTick();
-            buff[0] = wig[i].uit;
+            buff[0] = WiegandMap(wig[i].uit);
+//            char stringNum[10];
+//            int digits[10] = {1,2,3,4,5,6,7,8,9,0};
+//            sprintf(stringNum,"%d%d%d%d%d%d%d%d%d%d",digits[0],digits[1],digits[2],digits[3],digits[4],digits[5],
+//                    digits[6],digits[7],digits[8],digits[9]);
         }
+        wig[i].current_index = 0;
         return lenght;
 };
+
+ char WiegandMap(uint8_t key){
+     switch (key) {
+         case 240: return '0';
+         case 225: return '1';
+         case 210: return '2';
+         case 195: return '3';
+         case 180: return '4';
+         case 165: return '5';
+         case 150: return '6';
+         case 135: return '7';
+         case 120: return '8';
+         case 105: return '9';
+         case 90: return '\n';
+         case 75: return '\n';
+     }
+ }
