@@ -85,10 +85,10 @@ int main(void) {
     /* WIEGAND CONFIGURATION */
     w1.D1_Pin = D1_1_Pin;
     w1.D0_Pin = D0_1_Pin;
-    w2 = w1;
-    w3 = w1;
-    w4 = w1;
-    w5 = w1;
+//    w2 = w1;
+//    w3 = w1;
+//    w4 = w1;
+//    w5 = w1;
     struct wiegand Wiegands[5] = {
             w1, w2, w3, w4, w5
     };
@@ -123,7 +123,7 @@ int main(void) {
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1) {
-
+        KeyInputLoop();
         uint32_t time = HAL_GetTick();
         if (time > blink_time) {
             HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
@@ -131,7 +131,8 @@ int main(void) {
             HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
         }
         //IsAvaliable возвращает индекс устройства, с которого подали сигнал
-        if (WiegandIsAvaliable() != -1) {
+
+        if (WiegandIsAvaliable()!=100) {
             char digits[11];
             int len = WiegandGetKey(digits, WiegandIsAvaliable());
             //GetKey возвращает значение 1 если в массиве digits > одного элемента, иначе - 0
@@ -141,9 +142,9 @@ int main(void) {
         }
     }
 }
-    /* USER CODE END WHILE */
+/* USER CODE END WHILE */
 
-    /* USER CODE BEGIN 3 */
+/* USER CODE BEGIN 3 */
 
 
 /* USER CODE END 3 */

@@ -5,7 +5,7 @@
 
 #include "hid.h"
 
-int items[KEY_QUEUE_SIZE];
+uint8_t items[KEY_QUEUE_SIZE];
 int key_queue_front = -1, key_queue_rear =-1;
 
 
@@ -32,9 +32,11 @@ void KeyInputLoop() {
     uint32_t time = HAL_GetTick();
     switch(key_input_state) {
         case KEY_INPUT_STATE_WAIT: {
+3029909591
+
             if(!KeyInputQueueIsEmpty()) {
                 uint8_t before = 0;
-                for(int i=1; i <= 6 && !KeyInputQueueIsEmpty() && (i==0 || before != KeyInputQueuePeekQueue()); i++) {
+                for(int i=1; i <= 1 && !KeyInputQueueIsEmpty() && (i==0 || before != KeyInputQueuePeekQueue()); i++) {
                     switch (i) {
                         case 1: before = KeyInputQueueDeQueue(); keyboardhid.KEYCODE1 = KeyInputMap(before); break;
                         case 2: before = KeyInputQueueDeQueue(); keyboardhid.KEYCODE2 = KeyInputMap(before); break;
@@ -45,14 +47,14 @@ void KeyInputLoop() {
                     }
                 }
                 USBD_HID_SendReport(&hUsbDeviceFS, &keyboardhid, sizeof (keyboardhid));
-                key_input_time = time + 20;
+                key_input_time = time + 15;
                 key_input_state = KEY_INPUT_STATE_PRESS;
             }
             break;
         }
         case KEY_INPUT_STATE_PRESS: {
             if(time > key_input_time) {
-                for(int i=1; i <= 6; i++) {
+                for(int i=1; i <= 1; i++) {
                     switch (i) {
                         case 1: keyboardhid.KEYCODE1 = 0; break;
                         case 2: keyboardhid.KEYCODE2 = 0; break;
@@ -63,7 +65,7 @@ void KeyInputLoop() {
                     }
                 }
                 USBD_HID_SendReport(&hUsbDeviceFS, &keyboardhid, sizeof (keyboardhid));
-                key_input_time = time + 20;
+                key_input_time = time + 15;
                 key_input_state = KEY_INPUT_STATE_RELEASE;
             }
             break;
@@ -102,7 +104,7 @@ uint8_t KeyInputQueueEnQueue(uint8_t element) {
 }
 
 uint8_t KeyInputQueueDeQueue() {
-    int element;
+    char element;
     if(KeyInputQueueIsEmpty()) {
         return(0);
     } else {

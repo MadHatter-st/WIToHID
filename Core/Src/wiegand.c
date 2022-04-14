@@ -11,6 +11,8 @@ int wiegand_count;
 void WiegandInit(struct wiegand * w, int lenght){
     wiegand_count = lenght;
     wig = w;
+    wig[0].D1_Pin = D1_1_Pin;
+    wig[0].D0_Pin = D0_1_Pin;
     for(int i = 0; i<lenght; i++){
         wig[i].current_index = 0;
         wig[i].uit = 0;
@@ -23,7 +25,7 @@ void WiegandRead(uint16_t GPIO_Pin){
         if ((GPIO_Pin == wig[i].D1_Pin || GPIO_Pin == wig[i].D0_Pin) && wig[i].current_index < 33) {
             wig[i].values[wig[i].current_index++] = GPIO_Pin == wig[i].D0_Pin ? 1 : 0;                                  //можно будет переделать
             wig[i].uit = wig[i].uit << 1;
-            if (GPIO_Pin == wig[i].D0_Pin) {
+            if (GPIO_Pin == wig[i].D1_Pin) {
                 wig[i].uit |= 1;
             }
             wig[i].last_read_time = HAL_GetTick();
@@ -37,31 +39,25 @@ uint8_t WiegandIsAvaliable(){
             return i;
         }
     }
-    return -1;
+    return 100;
 };
-
- uint8_t WiegandCard(){
-    return wig[0].current_index>8?1:0;
-}
+//30299051
+//3029909591
 
 
 uint8_t WiegandGetKey(char * buff,int i){
      uint8_t lenght = 1;
         if (wig[i].current_index > 8) {
             lenght = 11;
-            sprintf(buff, "%010d\n", wig[i].uit);
+            sprintf(buff, "%010lu\n", wig[i].uit);
         } else {
             buff[0] = WiegandMap(wig[i].uit);
-//            char stringNum[10];
-//            int digits[10] = {1,2,3,4,5,6,7,8,9,0};
-//            sprintf(stringNum,"%d%d%d%d%d%d%d%d%d%d",digits[0],digits[1],digits[2],digits[3],digits[4],digits[5],
-//                    digits[6],digits[7],digits[8],digits[9]);
         }
         wig[i].current_index = 0;
         return lenght;
 };
 
- char WiegandMap(uint8_t key){
+ uint8_t WiegandMap(uint8_t key){
      switch (key) {
          case 240: return '0';
          case 225: return '1';
