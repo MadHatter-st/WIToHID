@@ -32,8 +32,6 @@ void KeyInputLoop() {
     uint32_t time = HAL_GetTick();
     switch(key_input_state) {
         case KEY_INPUT_STATE_WAIT: {
-3029909591
-
             if(!KeyInputQueueIsEmpty()) {
                 uint8_t before = 0;
                 for(int i=1; i <= 1 && !KeyInputQueueIsEmpty() && (i==0 || before != KeyInputQueuePeekQueue()); i++) {
